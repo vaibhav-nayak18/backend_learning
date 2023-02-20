@@ -163,6 +163,96 @@ const changePassword = BigPromise(async (req, res, next) => {
   cookieToken(user, res);
 });
 
+const updateUserDetails = BigPromise(async (req, res, next) => {
+  const newData = {
+    name: req.body.name,
+    email: req.body.email,
+  };
+
+  if (req.files) {
+    const user = await User.findById(req.user.id);
+    const imageId = user.photo.id;
+
+    // delete photo in cloudinary
+    const resp = await cloudinary.v2.uploader.destroy(imageId);
+
+    // upload new photo
+    const result = await cloudinary.v2.uploader.upload(
+      req.files.photo.tempFilePath,
+      {
+        folder: "users",
+        width: 150,
+        crop: "scale",
+      }
+    );
+
+    newData.photo = {
+      id: result.public_id,
+      secure_url: result.secure_url,
+    };
+  }
+  const user = await User.findByIdAndUpdate(req.user.id, newData, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
+
+const adminAllUser = BigPromise(async (req, res, next) => {
+  const users = await User.find();
+
+  if (!users) {
+    return next(new CustomError("user is not an admin"));
+  }
+
+  res.status(200).json({
+    success: true,
+    users,
+  });
+});
+
+const managerAllUser = BigPromise(async (req, res, next) => {
+  const users = await User.find({ role: "user" });
+
+  res.status(200).json({
+    success: true,
+    users,
+  });
+});
+
+const adminGetOneUser = BigPromise(async (req, res, next) => {
+  const id = req.params.id;
+  const user = await User.findById(id);
+
+  if (!user) {
+    return next(new CustomError("user does not exist", 400));
+  }
+
+  res.status(200).json({
+    success: true,
+    user,
+  });
+});
+
+const adminUpdateOneUser = BigPromise(async (req, res, next) => {
+  const newData = {
+    name: req.body.name,
+    email: req.body.email,
+    role: req.body.role,
+  };
+
+  const user = await User.findByIdAndUpdate(req.params.id, newData, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(201).json({
+    success: true,
+  });
+});
 export {
   signup,
   login,
@@ -171,4 +261,9 @@ export {
   passwordReset,
   getLoggedInUserDetails,
   changePassword,
+  updateUserDetails,
+  adminAllUser,
+  managerAllUser,
+  adminGetOneUser,
+  adminUpdateOneUser,
 };

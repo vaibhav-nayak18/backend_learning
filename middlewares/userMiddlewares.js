@@ -12,10 +12,18 @@ const isLoggedIn = BigPromise(async (req, res, next) => {
   }
 
   const decode = jwt.verify(token, process.env.JWTOKEN);
-  console.log(decode);
   req.user = await User.findById(decode.id);
 
   next();
 });
 
-export { isLoggedIn };
+const customRole = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new CustomError("you are not allowed", 403));
+    }
+    next();
+  };
+};
+
+export { isLoggedIn, customRole };
