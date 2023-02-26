@@ -244,13 +244,45 @@ const adminUpdateOneUser = BigPromise(async (req, res, next) => {
     role: req.body.role,
   };
 
+  if (!(newData.name || newData.email || newData.role)) {
+    return next(new CustomError("all fields are required"), 400);
+  }
+
   const user = await User.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
   });
 
+  if (!user) {
+    return next(new CustomError("user does not exist"));
+  }
+
+  await user.save();
+
   res.status(201).json({
     success: true,
+    user,
+  });
+});
+
+const adminDeleteOneUser = BigPromise(async (req, res, next) => {
+  const userId = req.params.id;
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    next(new CustomError("user does not exist", 400));
+  }
+
+  const imageId = user.photo.id;
+
+  await cloudinary.v2.uploader.destroy(imageId);
+
+  await user.remove();
+
+  res.status(200).json({
+    success: true,
+    user,
   });
 });
 export {
@@ -266,4 +298,5 @@ export {
   managerAllUser,
   adminGetOneUser,
   adminUpdateOneUser,
+  adminDeleteOneUser,
 };

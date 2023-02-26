@@ -12,6 +12,7 @@ import {
   managerAllUser,
   adminGetOneUser,
   adminUpdateOneUser,
+  adminDeleteOneUser,
 } from "../controllers/userController.js";
 import { customRole, isLoggedIn } from "../middlewares/userMiddlewares.js";
 
@@ -34,6 +35,7 @@ router
 router
   .route("/admin/users/:id")
   .get(isLoggedIn, customRole("admin"), adminGetOneUser)
-  .put(isLoggedIn, customRole("admin"), adminUpdateOneUser);
+  .put(isLoggedIn, customRole("admin"), adminUpdateOneUser)
+  .delete(isLoggedIn, customRole("admin"), adminDeleteOneUser);
 
 export default router;

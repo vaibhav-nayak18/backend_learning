@@ -34,9 +34,13 @@ app.use(morgan("tiny"));
 // import all router
 import homeRoute from "./routes/homeRoute.js";
 import userRoute from "./routes/userRoutes.js";
+import productRoute from "./routes/productRoutes.js";
+import paymentRoute from "./routes/paymentRoute.js";
 
 // router middleware
 app.use("/api/v1/", homeRoute);
 app.use("/api/v1/", userRoute);
+app.use("/api/v1/", productRoute);
+app.use("/api/v1/", paymentRoute);
 
 export default app;
